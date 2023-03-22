@@ -1,25 +1,35 @@
-import React from "react";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionItemHeading,
-  AccordionItemButton,
-  AccordionItemPanel,
-} from "react-accessible-accordion";
-import "./forecast.css";
-import DateRangeIcon from '@mui/icons-material/DateRange';
+import React from 'react'
+import { useState, useEffect } from 'react';
+import { WEATHER_API_KEY, WEATHER_API_URL } from '../../api';
+import {Accordion, AccordionItem, AccordionItemHeading, AccordionItemButton, AccordionItemPanel,  } from "react-accessible-accordion";
+import axios from 'axios';
 
 const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-const Forecast = ({ data }) => {
-  const dayInAWeek = new Date().getDay();
-  const forecastDays = WEEK_DAYS.slice(dayInAWeek, WEEK_DAYS.length).concat(WEEK_DAYS.slice(0, dayInAWeek));
+const DefaultForecast = () => {
+    const [latitude,setLatitude] = useState('');
+    const [longitude,setLongitude] = useState('');
+    const [responseData, setResponseData] = useState({});
+
+    const dayInAWeek = new Date().getDay();
+    const forecastDays = WEEK_DAYS.slice(dayInAWeek, WEEK_DAYS.length).concat(WEEK_DAYS.slice(0, dayInAWeek));
   
+    useEffect(() => {
+        navigator.geolocation.getCurrentPosition((position) => {
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude)
+        })
+        let currentLocationAPI = `${WEATHER_API_URL}/forecast?lat=${latitude}&lon=${longitude}&appid=${WEATHER_API_KEY}&units=metric`
+        axios.get(currentLocationAPI).then((response) => {
+          setResponseData(response.data)
+          console.log(response.data)
+        })
+      },[latitude,longitude]);
   return (
-    <>
-      <label className="title"><DateRangeIcon/>Upcoming 7 days</label>
+<>
+      <label className="title">Upcoming 7 days</label>
       <Accordion allowZeroExpanded>
-        {data.list.splice(0, 7).map((item, idx) => (
+        {responseData.list?.splice(0, 7).map((item, idx) => (
           <AccordionItem key={idx}>
             <AccordionItemHeading>
               <AccordionItemButton>
@@ -64,7 +74,7 @@ const Forecast = ({ data }) => {
         ))}
       </Accordion>
     </>
-  );
-};
+  )
+}
 
-export default Forecast;
+export default DefaultForecast

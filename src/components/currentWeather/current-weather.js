@@ -12,8 +12,8 @@ const CurrentWeather = ({ data }) => {
         <img
           alt="weather"
           className="weather-icon"
-          src={`icons/${data.weather[0].icon}.png`}
-        />
+          src={`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`}
+        />  
       </div>
       <div className="bottom">
         <p className="temperature">{Math.round(data.main.temp)}°C</p>

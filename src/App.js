@@ -1,15 +1,19 @@
-import logo from './logo.svg';
+import React, { useEffect } from 'react';
 import './App.css';
 import Search from './components/search/search';
 import CurrentWeather from './components/currentWeather/current-weather';
-import { WEATHER_API_KEY, WEATHER_API_URL } from './api';
+import {  WEATHER_API_KEY, WEATHER_API_URL } from './api';
 import { useState } from 'react';
 import Forecast from './components/forecast/forecast';
+import axios from 'axios';
+import Location from './components/currentLocation/current-location';
+import DefaultWeather from './components/default/default-weather';
+import DefaultForecast from './components/default/default-forecast';
+
 
 function App() {
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
-
 
   const handleOnSearchChange = (searchData) => {
     const [lat, lon] = searchData.value.split(" ");
@@ -26,14 +30,28 @@ function App() {
     }).catch((err) => console.log(err));
   }
 
-  console.log(currentWeather);
-  console.log(forecast);
+  const [latitude,setLatitude] = useState('');
+  const [longitude,setLongitude] = useState('');
+  const [responseData, setResponseData] = useState({});
+
+  useEffect(() => {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setLatitude(position.coords.latitude);
+        setLongitude(position.coords.longitude)
+      })
+      let currentLocationAPI = `${WEATHER_API_URL}/weather?lat=${latitude}&lon=${longitude}&appid=${WEATHER_API_KEY}&units=metric`
+      axios.get(currentLocationAPI).then((response) => {
+        setResponseData(response.data)
+        console.log(response.data)
+      })
+    },[latitude,longitude]);
 
   return (
     <div className="container">
+      <Location responseData={responseData}/>
       <Search onSearchChange={handleOnSearchChange}/>
-      {currentWeather && <CurrentWeather data={currentWeather}/>}
-      {forecast && <Forecast data={forecast} />}
+      {currentWeather? <CurrentWeather data={currentWeather}/> : <DefaultWeather/> }
+      {forecast? <Forecast data={forecast} /> : <DefaultForecast/>}
     </div>
   );
 }
